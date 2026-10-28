@@ -89,7 +89,8 @@ class ImageRecon(BaseModule):
         detail = {"fichero": fname,
                   "camara": " ".join(filter(None, [meta.get("Make"), meta.get("Model")])) or "—",
                   "fecha_captura": meta.get("DateTimeOriginal", "—"),
-                  "software": meta.get("Software", "—")}
+                  "software": meta.get("Software", "—"),
+                  "nota": "Para metadatos completos (todas las etiquetas) usar ExifTool"}
         if gps:
             detail["gps"] = gps
             detail["mapa"] = f"https://www.google.com/maps?q={gps[0]},{gps[1]}"
@@ -99,15 +100,24 @@ class ImageRecon(BaseModule):
             source=self.name, category=self.category, meta=detail,
         )]
         # Pivotes de busqueda inversa (benignos): abrir el motor y subir la foto.
-        for name, url in (
-            ("Google Imagenes (inversa)", "https://images.google.com/"),
-            ("Yandex (inversa)", "https://yandex.com/images/"),
-            ("Bing Visual Search", "https://www.bing.com/visualsearch"),
+        # Localizan la MISMA foto reutilizada; NO identifican rostros.
+        for name, url, nota in (
+            ("Google Imagenes (inversa)", "https://images.google.com/",
+             "Subir la foto manualmente para localizar reutilizaciones"),
+            ("Yandex (inversa)", "https://yandex.com/images/",
+             "Suele dar los mejores resultados de reutilizacion de foto"),
+            ("Bing Visual Search", "https://www.bing.com/visualsearch",
+             "Subir la foto manualmente"),
+            ("TinEye", "https://tineye.com/",
+             "Busqueda inversa por coincidencia exacta de imagen"),
+            ("FotoForensics (ELA)", "https://fotoforensics.com/",
+             "Analisis forense: detecta posible manipulacion/edicion de la foto"),
+            ("Geoestimacion (contexto)", "https://www.geoguessr.com/",
+             "Estimar la ubicacion por el contenido visual (manual, sin metadatos)"),
         ):
             out.append(Finding(
-                kind="pivot", label=f"Busqueda inversa: {name}", value=fname,
+                kind="pivot", label=f"Imagen: {name}", value=fname,
                 url=url, source=self.name, category="Imagen",
-                confidence=CONF_POSSIBLE,
-                meta={"instruccion": "Subir la foto manualmente para localizar reutilizaciones"},
+                confidence=CONF_POSSIBLE, meta={"instruccion": nota},
             ))
         return out

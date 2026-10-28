@@ -44,15 +44,15 @@ de relaciones.
 
 | Módulo | Entrada | Qué obtiene |
 |---|---|---|
-| **Huella pública** (`footprint`) | nombre | Menciones del nombre en la web, clasificadas (oficial/gobierno, académico, medios, redes, documentos) |
-| **Enumeración de usuarios** (`username_enum`) | alias | Comprobación del alias en ~50 sitios integrados **+ cientos** vía dataset de **WhatsMyName** (`--wmn`) |
+| **Huella pública** (`footprint`) | nombre / alias de nombre | Menciones del nombre (y nombres de soltera/seudónimos) en la web, clasificadas (oficial/gobierno, académico, medios, redes, documentos) |
+| **Enumeración de usuarios** (`username_enum`) | alias | Comprobación del alias en ~80 sitios integrados (incluye redes **geográficas**: VK, Douban, Qiita, Naver…) **+ cientos** vía dataset de **WhatsMyName** (`--wmn`) |
 | **Análisis de correo** (`email_recon`) | correo | **Gravatar** (nombre, foto y cuentas vinculadas), registros **MX** y clasificación del proveedor |
 | **Brechas de datos** (`breach_check`) | correo | Filtraciones conocidas (**HIBP** con clave / **XposedOrNot** gratis). No muestra contraseñas |
 | **Análisis telefónico** (`phone_check`) | teléfono | País, operador, tipo de línea, zona horaria y E.164 (**mundial**, sin red) |
-| **Auditoría de dominio** (`domain_recon`) | dominio | **DNS** (A/MX/NS/TXT), **WHOIS**, **SPF/DMARC** y **subdominios** vía Certificate Transparency (crt.sh) |
+| **Auditoría de dominio** (`domain_recon`) | dominio | **DNS** (A/MX/NS/TXT), **WHOIS**, **SPF/DMARC**, **subdominios** (crt.sh) + **Wayback Machine, urlscan, DNSDumpster** |
 | **Registros oficiales** (`public_records`) | nombre | Accesos a **BOE, BORME, BDNS**, boletines autonómicos y equivalentes por país (Companies House, SEC, The Gazette, EUR-Lex…) |
-| **Metadatos de imagen** (`image_recon`) | imagen | **EXIF/GPS** (cámara, fecha, mapa) + búsqueda inversa (**sin reconocimiento facial**) |
-| **Google Dorks y pivotes** (`dorks`) | cualquiera | Dorks y enlaces OSINT listos, agrupados por categoría (Nombre/Alias/Correo/Teléfono) |
+| **Metadatos de imagen** (`image_recon`) | imagen | **EXIF/GPS** (cámara, fecha, mapa) + búsqueda inversa (Google/Yandex/TinEye), **FotoForensics** y geoestimación (**sin reconocimiento facial**) |
+| **Google Dorks y pivotes** (`dorks`) | cualquiera | Dorks multi-motor y enlaces OSINT por categoría (Nombre/Alias/Correo/Teléfono): LinkedIn/directorios, IntelX→Yandex, EmailOSINT… |
 | **Herramientas externas** (`external_tools`) | alias/correo/dominio | Integra **sherlock, maigret, holehe, theHarvester** si están instaladas |
 
 ### Correlación (extra)
@@ -132,9 +132,9 @@ python main.py -u johndoe --auto --yes --external
 python main.py --list-modules
 python main.py --list-tools
 ```
-Parámetros: `-n/--name`, `-u/--username`, `-e/--email`, `-p/--phone`, `-d/--domain`,
-`-l/--location`, `--country`, `--image`, `-o/--output`, `--slug`, `--auto`, `--yes`,
-`--external`, `--wmn`, `--open`, `--no-color`.
+Parámetros: `-n/--name`, `--aka` (nombre de soltera/seudónimo), `-u/--username`,
+`-e/--email`, `-p/--phone`, `-d/--domain`, `-l/--location`, `--country`, `--image`,
+`-o/--output`, `--slug`, `--auto`, `--yes`, `--external`, `--wmn`, `--open`, `--no-color`.
 
 ### 3) Interfaz web
 ```bash
@@ -220,6 +220,12 @@ osint-hound/
 - **Validación robusta** que descarta entradas inválidas sin romper la ejecución.
 
 ---
+
+## 📝 Técnicas de los apuntes
+El fichero [`APUNTES.md`](APUNTES.md) traza **cada técnica de OSINT de personas**
+de los apuntes de clase hasta el punto exacto del código donde está implementada,
+y explica qué se deja fuera a propósito (reconocimiento facial, volcados de
+credenciales) y por qué.
 
 ## 📜 Licencia
 MIT — ver [`LICENSE`](LICENSE). Incluye el aviso de uso ético y legal.

@@ -51,6 +51,36 @@
     {"name": "Gravatar", "cat": "Identidad", "url": "https://gravatar.com/{}", "check": "status", "country": "global"},
     {"name": "Imgur", "cat": "Contenido", "url": "https://imgur.com/user/{}", "check": "status", "country": "global"},
     {"name": "Buy Me a Coffee", "cat": "Profesional", "url": "https://www.buymeacoffee.com/{}", "check": "status", "country": "global"},
-    {"name": "Tellonym", "cat": "Social", "url": "https://tellonym.me/{}", "check": "status", "country": "global"}
+    {"name": "Tellonym", "cat": "Social", "url": "https://tellonym.me/{}", "check": "status", "country": "global"},
+
+    {"name": "Tumblr", "cat": "Blog", "url": "https://{}.tumblr.com", "check": "not_found_text", "nf": "There's nothing here", "country": "global"},
+    {"name": "WordPress", "cat": "Blog", "url": "https://{}.wordpress.com", "check": "status", "country": "global"},
+    {"name": "Blogger", "cat": "Blog", "url": "https://{}.blogspot.com", "check": "status", "country": "global"},
+    {"name": "Substack", "cat": "Blog", "url": "https://{}.substack.com", "check": "status", "country": "global"},
+    {"name": "Bandcamp", "cat": "Contenido", "url": "https://bandcamp.com/{}", "check": "status", "country": "global"},
+    {"name": "Ko-fi", "cat": "Profesional", "url": "https://ko-fi.com/{}", "check": "status", "country": "global"},
+    {"name": "Gumroad", "cat": "Profesional", "url": "https://{}.gumroad.com", "check": "status", "country": "global"},
+    {"name": "Letterboxd", "cat": "Contenido", "url": "https://letterboxd.com/{}/", "check": "status", "country": "global"},
+    {"name": "MyAnimeList", "cat": "Contenido", "url": "https://myanimelist.net/profile/{}", "check": "status", "country": "global"},
+    {"name": "Trakt", "cat": "Contenido", "url": "https://trakt.tv/users/{}", "check": "status", "country": "global"},
+    {"name": "VSCO", "cat": "Creativo", "url": "https://vsco.co/{}/gallery", "check": "status", "country": "global"},
+    {"name": "DeviantArt", "cat": "Creativo", "url": "https://www.deviantart.com/{}", "check": "status", "country": "global"},
+    {"name": "Unsplash", "cat": "Creativo", "url": "https://unsplash.com/@{}", "check": "status", "country": "global"},
+    {"name": "Giphy", "cat": "Contenido", "url": "https://giphy.com/{}", "check": "status", "country": "global"},
+    {"name": "Slideshare", "cat": "Profesional", "url": "https://www.slideshare.net/{}", "check": "status", "country": "global"},
+    {"name": "AngelList / Wellfound", "cat": "Profesional", "url": "https://wellfound.com/u/{}", "check": "status", "country": "global"},
+
+    {"name": "VK", "cat": "Social (RU)", "url": "https://vk.com/{}", "check": "status", "country": "RU"},
+    {"name": "OK.ru", "cat": "Social (RU)", "url": "https://ok.ru/{}", "check": "status", "country": "RU"},
+    {"name": "Livejournal", "cat": "Blog (RU)", "url": "https://{}.livejournal.com", "check": "status", "country": "RU"},
+    {"name": "Habr", "cat": "Desarrollo (RU)", "url": "https://habr.com/ru/users/{}/", "check": "status", "country": "RU"},
+    {"name": "Douban", "cat": "Social (CN)", "url": "https://www.douban.com/people/{}/", "check": "status", "country": "CN"},
+    {"name": "Bilibili (busqueda)", "cat": "Contenido (CN)", "url": "https://search.bilibili.com/upuser?keyword={}", "check": "status", "country": "CN"},
+    {"name": "Gitee", "cat": "Desarrollo (CN)", "url": "https://gitee.com/{}", "check": "status", "country": "CN"},
+    {"name": "Naver Blog", "cat": "Blog (KR)", "url": "https://blog.naver.com/{}", "check": "status", "country": "KR"},
+    {"name": "Velog", "cat": "Desarrollo (KR)", "url": "https://velog.io/@{}", "check": "status", "country": "KR"},
+    {"name": "Qiita", "cat": "Desarrollo (JP)", "url": "https://qiita.com/{}", "check": "status", "country": "JP"},
+    {"name": "Note (JP)", "cat": "Blog (JP)", "url": "https://note.com/{}", "check": "status", "country": "JP"},
+    {"name": "Nico Nico", "cat": "Contenido (JP)", "url": "https://www.nicovideo.jp/user/{}", "check": "status", "country": "JP"}
   ]
 }

@@ -40,6 +40,8 @@ def parse_args():
         description="Recoleccion OSINT de personas (fuentes abiertas, human-in-the-loop).",
         formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("-n", "--name", default="", help="Nombre completo")
+    p.add_argument("--aka", default="",
+                   help="Nombre(s) alternativo(s)/de soltera/seudonimo (varios con comas)")
     p.add_argument("-u", "--username", default="", help="Alias/username (varios con comas)")
     p.add_argument("-e", "--email", default="", help="Correo (varios con comas)")
     p.add_argument("-p", "--phone", default="", help="Telefono (varios con comas)")
@@ -89,6 +91,7 @@ def wizard(hitl: HITL) -> dict:
     console.info("Introduce lo que tengas (deja en blanco lo que no). Varios valores con comas.")
     return {
         "name": hitl.ask("Nombre completo"),
+        "aka": hitl.ask("Nombre alternativo / de soltera / seudonimo"),
         "username": hitl.ask("Alias / username"),
         "email": hitl.ask("Correo(s)"),
         "phone": hitl.ask("Telefono(s)"),
@@ -115,10 +118,11 @@ def main():
     hitl = HITL(interactive=not args.auto, authorized=args.yes)
 
     # --- Reunir identificadores ---
-    cli_fields = {"name": args.name, "username": args.username, "email": args.email,
-                  "phone": args.phone, "domain": args.domain, "location": args.location,
-                  "country": args.country, "image": args.image}
-    any_cli = any(cli_fields[k] for k in ("name", "username", "email", "phone", "domain", "image"))
+    cli_fields = {"name": args.name, "aka": args.aka, "username": args.username,
+                  "email": args.email, "phone": args.phone, "domain": args.domain,
+                  "location": args.location, "country": args.country, "image": args.image}
+    any_cli = any(cli_fields[k] for k in
+                  ("name", "aka", "username", "email", "phone", "domain", "image"))
 
     if not any_cli:
         if args.auto:

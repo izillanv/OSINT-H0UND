@@ -143,4 +143,23 @@ class DomainRecon(BaseModule):
                     category="Dominio", confidence=CONF_POSSIBLE,
                     meta={"dominio_padre": domain},
                 ))
+            # Pivotes de huella historica/web del dominio (fuentes abiertas).
+            for name, url, nota in (
+                ("Wayback Machine", f"https://web.archive.org/web/*/{domain}/*",
+                 "Snapshots historicas del sitio a lo largo del tiempo"),
+                ("urlscan.io", f"https://urlscan.io/search/#domain%3A{domain}",
+                 "Escaneos publicos del dominio (recursos, redirecciones)"),
+                ("DNSDumpster", "https://dnsdumpster.com/",
+                 "Mapa de subdominios y estructura DNS (consulta manual)"),
+                ("Google Dork de ficheros", f"https://www.google.com/search?q=site:{domain}+(ext:pdf+OR+ext:xlsx+OR+ext:docx)",
+                 "Documentos indexados del dominio"),
+                ("robots.txt / sitemap.xml", f"https://{domain}/robots.txt",
+                 "Rutas que el sitio declara (y a veces oculta)"),
+            ):
+                out.append(Finding(
+                    kind="pivot", label=f"Web: {name}", value=domain, url=url,
+                    source=self.name, category="Dominio",
+                    confidence=CONF_POSSIBLE,
+                    meta={"dominio": domain, "instruccion": nota},
+                ))
         return out

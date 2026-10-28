@@ -41,7 +41,7 @@ REPORTS_DIR = os.path.join(_BASE, "reports")
 # Almacen en memoria de investigaciones en curso (herramienta local, 1 usuario).
 JOBS: dict = {}
 
-_FIELDS = ("name", "username", "email", "phone", "domain", "location",
+_FIELDS = ("name", "aka", "username", "email", "phone", "domain", "location",
            "country", "image")
 
 

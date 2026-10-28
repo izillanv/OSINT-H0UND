@@ -34,27 +34,63 @@ _COMMON_MAIL = ["gmail.com", "outlook.com", "hotmail.com", "yahoo.com", "proton.
 # --------------------------------------------------------------------------- #
 # 1. Derivacion de candidatos (POSIBLE)
 # --------------------------------------------------------------------------- #
+def _strip_accents(text: str) -> str:
+    """Normaliza acentos (José -> jose) para generar alias realistas."""
+    import unicodedata
+    return "".join(c for c in unicodedata.normalize("NFKD", text)
+                   if not unicodedata.combining(c))
+
+
 def _handles_from_name(name: str) -> List[str]:
-    """Genera alias plausibles a partir de un nombre completo."""
-    parts = [p for p in name.lower().split() if p.isalpha()]
+    """
+    Genera alias plausibles a partir de un nombre completo.
+
+    Contempla el caso de los apuntes: nombres con VARIOS apellidos (habitual en
+    español: "nombre + primer apellido + segundo apellido"). Para un objetivo
+    como "Ada Beatriz Lovelace King" propone, entre otros, adalovelace,
+    ada.king (nombre + segundo apellido), lovelaceking (los dos apellidos),
+    alovelace (inicial + apellido), etc. Prioriza los patrones mas usados.
+    """
+    parts = [_strip_accents(p) for p in name.lower().split() if p.isalpha()]
     if not parts:
         return []
+
+    first = parts[0]
+    surnames = parts[1:]                 # puede haber 0, 1 o varios apellidos
+    s1 = surnames[0] if surnames else ""
+    s2 = surnames[1] if len(surnames) > 1 else ""
+
     out: List[str] = []
-    joined = "".join(parts)
-    out.append(joined)                                   # adalovelace
-    out.append(".".join(parts))                          # ada.lovelace
-    out.append("_".join(parts))                          # ada_lovelace
-    if len(parts) >= 2:
-        out.append(parts[0] + parts[-1][0])              # adal
-        out.append(parts[0][0] + parts[-1])              # alovelace
-        out.append(parts[0] + "." + parts[-1])           # ada.lovelace (dup-safe)
+    if not surnames:
+        out += [first]
+    else:
+        out += [
+            first + s1,                  # adalovelace  (nombre + apellido1)
+            f"{first}.{s1}",             # ada.lovelace
+            f"{first}_{s1}",             # ada_lovelace
+            first[0] + s1,               # alovelace    (inicial + apellido1)
+            first + s1[0],               # adal         (nombre + inicial apellido)
+            "".join(parts),              # adabeatrizlovelaceking (todo junto)
+        ]
+        if s2:
+            out += [
+                first + s2,              # adaking      (nombre + apellido2)
+                f"{first}.{s2}",         # ada.king
+                s1 + s2,                 # lovelaceking (los dos apellidos)
+                first[0] + s1 + s2,      # alovelaceking
+            ]
+        out += [
+            f"{s1}.{first}",             # lovelace.ada (orden invertido, estilo corp.)
+            first + "." + "".join(surnames),
+        ]
+
     # Dedup conservando orden y longitud razonable.
     seen, uniq = set(), []
     for h in out:
         if 3 <= len(h) <= 30 and h not in seen:
             seen.add(h)
             uniq.append(h)
-    return uniq[:6]
+    return uniq[:9]
 
 
 def derive_candidates(target: Target) -> List[Finding]:
@@ -64,17 +100,23 @@ def derive_candidates(target: Target) -> List[Finding]:
     """
     out: List[Finding] = []
     handles: List[str] = []
+    seen_handles = set()
 
-    # Alias candidatos desde el nombre.
-    if target.name:
-        handles = _handles_from_name(target.name)
-        for h in handles:
-            if h not in target.usernames:
-                out.append(possible_finding(
-                    kind="username", label=f"Alias candidato: {h}", value=h,
-                    source="correlate", category="Candidatos (revisar)",
-                    meta={"derived_from": "nombre", "username": h},
-                ))
+    # Alias candidatos desde el nombre principal y los nombres alternativos
+    # (nombre de soltera / seudonimos). Los apuntes: un mismo alias conecta
+    # perfiles que parecen no relacionados.
+    for src_label, nm in ([("nombre", target.name)] if target.name else []) + \
+                         [("nombre alternativo", a) for a in target.aka]:
+        for h in _handles_from_name(nm):
+            if h in target.usernames or h in seen_handles:
+                continue
+            seen_handles.add(h)
+            handles.append(h)
+            out.append(possible_finding(
+                kind="username", label=f"Alias candidato: {h}", value=h,
+                source="correlate", category="Candidatos (revisar)",
+                meta={"derived_from": src_label, "username": h},
+            ))
 
     # Si hay alias confirmados, tambien sirven de base para correos.
     base_handles = list(target.usernames) + handles

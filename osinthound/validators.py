@@ -136,6 +136,7 @@ class Target:
     """
 
     name: Optional[str] = None
+    aka: List[str] = field(default_factory=list)   # nombres de soltera / seudonimos
     usernames: List[str] = field(default_factory=list)
     emails: List[str] = field(default_factory=list)
     phones: List[str] = field(default_factory=list)
@@ -144,9 +145,14 @@ class Target:
     country: str = config.DEFAULT_COUNTRY
     image: Optional[str] = None
 
+    def all_names(self) -> List[str]:
+        """Nombre principal + alternativos (para huella y derivacion)."""
+        names = ([self.name] if self.name else []) + list(self.aka)
+        return names
+
     def has_any(self) -> bool:
         """True si hay al menos un identificador utilizable."""
-        return any([self.name, self.usernames, self.emails,
+        return any([self.name, self.aka, self.usernames, self.emails,
                     self.phones, self.domains, self.image])
 
     def summary(self) -> str:
@@ -154,6 +160,8 @@ class Target:
         parts = []
         if self.name:
             parts.append(self.name)
+        if self.aka:
+            parts.append("alias: " + ", ".join(self.aka))
         if self.usernames:
             parts.append("@" + ", @".join(self.usernames))
         if self.emails:
@@ -190,6 +198,14 @@ def build_target(raw: dict, country: str = config.DEFAULT_COUNTRY
     target.name = name
     if w:
         warnings.append(w)
+
+    # Nombres alternativos / de soltera / seudonimos (multi-valor)
+    for value in _split_multi(raw.get("aka", "")):
+        clean, w = validate_name(value)
+        if clean and clean != target.name and clean not in target.aka:
+            target.aka.append(clean)
+        if w:
+            warnings.append(w)
 
     # Multi-valor: alias, correos, telefonos, dominios
     for value in _split_multi(raw.get("username", "")):

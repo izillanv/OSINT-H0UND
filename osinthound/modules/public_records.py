@@ -97,10 +97,13 @@ class PublicRecords(BaseModule):
     accepts = {"name"}
     needs_network = False  # solo genera enlaces; no consulta nada por si mismo
 
+    def applicable(self, target: Target) -> bool:
+        return bool(target.all_names())
+
     def run(self, target: Target, ctx: Context) -> List[Finding]:
-        if not target.name:
+        names = target.all_names()
+        if not names:
             return []
-        q = quote(target.name)
         country = (target.country or "ES").upper()
 
         catalog = list(_GLOBAL)
@@ -109,15 +112,19 @@ class PublicRecords(BaseModule):
             catalog.append(_EURLEX)
 
         out: List[Finding] = []
-        for src in catalog:
-            out.append(Finding(
-                kind=src["kind"],
-                label=src["name"],
-                value=target.name,
-                url=src["url"].format(q=q),
-                source=self.name,
-                category=self.category,
-                confidence=CONF_POSSIBLE,
-                meta={"pais": country, "instruccion": "Abrir y confirmar coincidencias reales"},
-            ))
+        for nm in names:
+            q = quote(nm)
+            suffix = "" if nm == target.name else f" ({nm})"
+            for src in catalog:
+                out.append(Finding(
+                    kind=src["kind"],
+                    label=src["name"] + suffix,
+                    value=nm,
+                    url=src["url"].format(q=q),
+                    source=self.name,
+                    category=self.category,
+                    confidence=CONF_POSSIBLE,
+                    meta={"pais": country, "busqueda": nm,
+                          "instruccion": "Abrir y confirmar coincidencias reales"},
+                ))
         return out

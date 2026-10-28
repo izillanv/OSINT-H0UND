@@ -35,14 +35,27 @@ class Dorks(BaseModule):
     accepts = {"name", "username", "email", "phone"}
     needs_network = False
 
-    def _for_name(self, name: str) -> List[tuple]:
-        return [
-            ("Nombre exacto", _g(f'"{name}"')),
-            ("Nombre + perfil social", _g(f'"{name}" (site:linkedin.com OR site:x.com OR site:facebook.com)')),
+    def applicable(self, target: Target) -> bool:
+        return bool(target.all_names() or target.usernames
+                    or target.emails or target.phones)
+
+    def _for_name(self, name: str, context: str = "") -> List[tuple]:
+        q = quote(name)
+        pairs = [
+            ("Nombre exacto (Google)", _g(f'"{name}"')),
+            ("Nombre exacto (DuckDuckGo)", f"https://duckduckgo.com/?q={quote(chr(34)+name+chr(34))}"),
+            ("Nombre exacto (Bing)", f"https://www.bing.com/search?q=%22{q}%22"),
+            ("LinkedIn (perfil)", _g(f'"{name}" site:linkedin.com/in')),
+            ("Nombre + otras redes", _g(f'"{name}" (site:x.com OR site:facebook.com OR site:instagram.com)')),
             ("Documentos con el nombre", _g(f'"{name}" (filetype:pdf OR filetype:docx OR filetype:xlsx)')),
             ("Nombre en pastes/filtraciones", _g(f'"{name}" (site:pastebin.com OR site:ghostbin.com OR site:throwbin.io)')),
-            ("Nombre en GitHub", f"https://github.com/search?q=%22{quote(name)}%22&type=code"),
+            ("Nombre en GitHub", f"https://github.com/search?q=%22{q}%22&type=code"),
+            ("Directorios profesionales", _g(f'"{name}" (site:linkedin.com OR site:xing.com OR site:crunchbase.com OR site:zoominfo.com)')),
         ]
+        if context:
+            pairs.append(("Nombre + contexto (empresa/ciudad)",
+                          _g(f'"{name}" "{context}" site:linkedin.com')))
+        return pairs
 
     def _for_username(self, u: str) -> List[tuple]:
         return [
@@ -55,12 +68,15 @@ class Dorks(BaseModule):
 
     def _for_email(self, e: str) -> List[tuple]:
         return [
-            ("Correo exacto", _g(f'"{e}"')),
+            ("Correo exacto (Google)", _g(f'"{e}"')),
             ("HaveIBeenPwned", f"https://haveibeenpwned.com/account/{quote(e)}"),
             ("EPIEOS (cuentas por correo)", "https://epieos.com/"),
+            ("EmailOSINT.org", "https://emailrep.io/" + quote(e)),
             ("Correo en pastes", _g(f'"{e}" (site:pastebin.com OR site:ghostbin.com)')),
             ("Tecnica IntelX -> Yandex", "https://intelx.io/"),
-            ("Cruce en Yandex", "https://yandex.com/search/?text=" + quote(f'"{e}"')),
+            ("Cruce en Yandex (comillas)", "https://yandex.com/search/?text=" + quote(f'"{e}"')),
+            ("Recuperacion de cuenta (manual)",
+             "https://accounts.google.com/signin/recovery"),
         ]
 
     def _for_phone(self, p: str) -> List[tuple]:
@@ -82,8 +98,8 @@ class Dorks(BaseModule):
                     confidence=CONF_POSSIBLE, meta={"grupo": group},
                 ))
 
-        if target.name:
-            emit("Nombre", self._for_name(target.name))
+        for nm in target.all_names():
+            emit(f"Nombre: {nm}", self._for_name(nm, target.location or ""))
         for u in target.usernames:
             emit(f"Alias @{u}", self._for_username(u))
         for e in target.emails:

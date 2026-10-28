@@ -1,7 +1,7 @@
 {
   "herramienta": "OSINT Hound v3.0.0",
   "metadatos": {
-    "objetivo": "Ada Lovelace King · @adaloveking, @lovelace_a · ada.king@proton.me, a.king@novatech.io · +442079460958 · novatech.io",
+    "objetivo": "Ada Lovelace King · alias: Ada Byron · @adaloveking, @lovelace_a · ada.king@proton.me, a.king@novatech.io · +442079460958 · novatech.io",
     "pais": "Reino Unido",
     "fecha": "2026-10-28 17:05:00",
     "modulos": [
@@ -13,13 +13,14 @@
       "Auditoria de dominio",
       "Registros y boletines oficiales",
       "Metadatos de imagen",
-      "Google Dorks y pivotes"
+      "Google Dorks y pivotes",
+      "Herramientas externas"
     ],
     "herramientas_externas": "instaladas: sherlock, holehe",
     "advertencias": [],
     "duracion_s": 24.7,
     "consultas_realizadas": 71,
-    "total_hallazgos": 31,
+    "total_hallazgos": 32,
     "confirmados": 13
   },
   "objetivo": {
@@ -62,7 +63,7 @@
         },
         "value": 30,
         "meta": {
-          "resumen": "Ada Lovelace King · @adaloveking, @lovelace_a · ada.king@proton.me, a.king@novatech.io · +442079460958 · novatech.io",
+          "resumen": "Ada Lovelace King · alias: Ada Byron · @adaloveking, @lovelace_a · ada.king@proton.me, a.king@novatech.io · +442079460958 · novatech.io",
           "pais": "Reino Unido",
           "ubicacion": "Londres"
         }
@@ -627,7 +628,8 @@
             51.5079,
             -0.0877
           ],
-          "mapa": "https://www.google.com/maps?q=51.5079,-0.0877"
+          "mapa": "https://www.google.com/maps?q=51.5079,-0.0877",
+          "nota": "Para metadatos completos usar ExifTool"
         }
       },
       {
@@ -1480,20 +1482,34 @@
           51.5079,
           -0.0877
         ],
-        "mapa": "https://www.google.com/maps?q=51.5079,-0.0877"
+        "mapa": "https://www.google.com/maps?q=51.5079,-0.0877",
+        "nota": "Para metadatos completos usar ExifTool"
       },
       "accepted": true
     },
     {
       "kind": "pivot",
-      "label": "Busqueda inversa: Yandex",
+      "label": "Imagen: Yandex (inversa)",
       "value": "",
       "url": "https://yandex.com/images/",
       "source": "demo",
       "category": "Imagen",
       "confidence": "possible",
       "meta": {
-        "instruccion": "Subir la foto manualmente"
+        "instruccion": "Suele dar los mejores resultados de reutilizacion de foto"
+      },
+      "accepted": true
+    },
+    {
+      "kind": "pivot",
+      "label": "Imagen: FotoForensics (ELA)",
+      "value": "",
+      "url": "https://fotoforensics.com/",
+      "source": "demo",
+      "category": "Imagen",
+      "confidence": "possible",
+      "meta": {
+        "instruccion": "Analisis forense: detecta posible manipulacion/edicion"
       },
       "accepted": true
     },

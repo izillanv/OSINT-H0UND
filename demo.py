@@ -32,6 +32,7 @@ def build_demo():
     # --- Objetivo ficticio ---
     target, _ = build_target({
         "name": "Ada Lovelace King",
+        "aka": "Ada Byron",
         "username": "adaloveking, lovelace_a",
         "email": "ada.king@proton.me, a.king@novatech.io",
         "phone": "+44 20 7946 0958",
@@ -127,9 +128,14 @@ def build_demo():
         # -------- Imagen --------
         _f("image", "Imagen: perfil.jpg", value="perfil.jpg", category="Imagen",
            fichero="perfil.jpg", camara="Apple iPhone 14 Pro", fecha_captura="2024:05:18 14:32:07",
-           software="iOS 17.4", gps=[51.5079, -0.0877], mapa="https://www.google.com/maps?q=51.5079,-0.0877"),
-        _f("pivot", "Busqueda inversa: Yandex", url="https://yandex.com/images/",
-           category="Imagen", confidence=CONF_POSSIBLE, instruccion="Subir la foto manualmente"),
+           software="iOS 17.4", gps=[51.5079, -0.0877], mapa="https://www.google.com/maps?q=51.5079,-0.0877",
+           nota="Para metadatos completos usar ExifTool"),
+        _f("pivot", "Imagen: Yandex (inversa)", url="https://yandex.com/images/",
+           category="Imagen", confidence=CONF_POSSIBLE,
+           instruccion="Suele dar los mejores resultados de reutilizacion de foto"),
+        _f("pivot", "Imagen: FotoForensics (ELA)", url="https://fotoforensics.com/",
+           category="Imagen", confidence=CONF_POSSIBLE,
+           instruccion="Analisis forense: detecta posible manipulacion/edicion"),
 
         # -------- Candidatos derivados --------
         _f("username", "Alias candidato: adalovelaceking", value="adalovelaceking",
@@ -145,7 +151,8 @@ def build_demo():
         "fecha": "2026-10-28 17:05:00",
         "modulos": ["Huella publica", "Enumeracion de usuarios", "Analisis de correo",
                     "Brechas de datos", "Analisis telefonico", "Auditoria de dominio",
-                    "Registros y boletines oficiales", "Metadatos de imagen", "Google Dorks y pivotes"],
+                    "Registros y boletines oficiales", "Metadatos de imagen",
+                    "Google Dorks y pivotes", "Herramientas externas"],
         "herramientas_externas": "instaladas: sherlock, holehe",
         "advertencias": [],
         "duracion_s": 24.7,
