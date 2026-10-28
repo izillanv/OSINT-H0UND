@@ -1,0 +1,30 @@
+# Entornos virtuales
+venv/
+.venv/
+env/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# Secretos / claves de API (NUNCA subir al repo)
+.env
+
+# Reportes generados (contienen datos de objetivos reales)
+reports/*.html
+reports/*.json
+reports/*.dot
+!reports/.gitkeep
+# ...excepto el informe de DEMOSTRACION (datos ficticios), que si se versiona
+# como ejemplo de ejecucion para la entrega.
+!reports/demo_report.html
+!reports/demo_report.json
+!reports/demo_report.dot
+
+# Sistema operativo / editores
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="es" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ada Lovelace King · OSINT Hound</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/vis-network@9.1.9/standalone/umd/vis-network.min.js"></script>
+<style>
+:root{
+  --bg:#0a0d13; --bg2:#0e121b; --panel:#141a25; --panel2:#1a2130;
+  --line:#243043; --line2:#2e3c52;
+  --ink:#e8edf5; --muted:#9db1c7; --dim:#6b7c93;
+  --gold:#f2b544; --teal:#56c5b5; --blue:#6ea8fe; --violet:#b98cf0;
+  --red:#e5534b; --green:#64c98a; --amber:#f2b544;
+  --radius:16px; --radius-sm:10px;
+  --shadow:0 10px 40px -12px rgba(0,0,0,.6);
+  --mono:'JetBrains Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  background:
+    radial-gradient(1200px 600px at 80% -10%, rgba(242,181,68,.08), transparent 60%),
+    radial-gradient(1000px 500px at -10% 10%, rgba(86,197,181,.07), transparent 55%),
+    var(--bg);
+  color:var(--ink); line-height:1.55; -webkit-font-smoothing:antialiased;
+}
+a{color:var(--teal);text-decoration:none}
+a:hover{text-decoration:underline}
+.wrap{max-width:1180px;margin:0 auto;padding:0 20px 80px}
+
+/* ---------- Hero ---------- */
+.hero{
+  position:relative;overflow:hidden;margin:0 0 26px;
+  border-bottom:1px solid var(--line);
+  background:linear-gradient(180deg, rgba(20,26,37,.85), rgba(10,13,19,.4));
+}
+.hero-inner{max-width:1180px;margin:0 auto;padding:40px 20px 34px;position:relative;z-index:2}
+.brand{display:flex;align-items:center;gap:12px;font-weight:800;letter-spacing:.2px;
+  font-size:14px;color:var(--muted);text-transform:uppercase}
+.brand .dot{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;
+  background:linear-gradient(135deg,var(--gold),#d9932f);color:#1a1205;font-size:16px}
+.h-title{font-size:clamp(26px,4vw,40px);font-weight:800;margin:16px 0 6px;letter-spacing:-.5px}
+.h-sub{color:var(--muted);font-family:var(--mono);font-size:14px}
+.h-meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
+.chip{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;color:var(--muted);
+  background:var(--panel);border:1px solid var(--line);padding:6px 11px;border-radius:999px}
+.chip b{color:var(--ink);font-weight:600}
+.expo{position:absolute;right:20px;top:40px;text-align:right;z-index:2}
+.expo .lab{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--dim)}
+.expo .val{font-size:22px;font-weight:800;margin-top:2px}
+.expo.low .val{color:var(--green)} .expo.med .val{color:var(--amber)}
+.expo.high .val{color:var(--red)} .expo.min .val{color:var(--teal)}
+.meter{width:170px;height:7px;border-radius:999px;background:var(--panel2);margin-top:8px;overflow:hidden}
+.meter i{display:block;height:100%;border-radius:999px;
+  background:linear-gradient(90deg,var(--teal),var(--amber),var(--red))}
+
+/* ---------- Stat tiles ---------- */
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin:0 0 26px}
+.tile{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+  padding:16px 18px;position:relative;overflow:hidden}
+.tile::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent,var(--teal))}
+.tile .n{font-size:28px;font-weight:800;letter-spacing:-.5px}
+.tile .l{font-size:12.5px;color:var(--muted);margin-top:2px}
+.tile .ic{position:absolute;right:12px;top:12px;font-size:18px;opacity:.5}
+
+/* ---------- Tabs ---------- */
+.tabs{display:flex;gap:4px;flex-wrap:wrap;border-bottom:1px solid var(--line);margin:0 0 22px;
+  position:sticky;top:0;background:linear-gradient(180deg,var(--bg),rgba(10,13,19,.9));
+  z-index:5;padding-top:4px}
+.tab{appearance:none;border:0;background:transparent;color:var(--muted);font-family:inherit;
+  font-size:13.5px;font-weight:600;padding:11px 15px;cursor:pointer;border-bottom:2px solid transparent;
+  border-radius:8px 8px 0 0;transition:.15s}
+.tab:hover{color:var(--ink);background:var(--panel)}
+.tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+.tab .c{font-size:11px;background:var(--panel2);color:var(--muted);border-radius:999px;
+  padding:1px 7px;margin-left:6px;font-weight:600}
+.panel{display:none;animation:fade .25s ease}
+.panel.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+/* ---------- Graph ---------- */
+.graph-wrap{display:grid;grid-template-columns:1fr 300px;gap:16px}
+@media(max-width:860px){.graph-wrap{grid-template-columns:1fr}}
+#graph{height:560px;background:
+  radial-gradient(600px 300px at 50% 0%, rgba(86,197,181,.05),transparent),
+  var(--bg2);border:1px solid var(--line);border-radius:var(--radius);position:relative}
+.toolbar{position:absolute;top:12px;left:12px;display:flex;gap:6px;flex-wrap:wrap;z-index:4}
+.tbtn{font-family:inherit;font-size:12px;font-weight:600;color:var(--muted);
+  background:rgba(20,26,37,.9);border:1px solid var(--line2);border-radius:8px;
+  padding:6px 10px;cursor:pointer;backdrop-filter:blur(6px)}
+.tbtn:hover{color:var(--ink);border-color:var(--teal)}
+.tbtn.on{color:var(--gold);border-color:var(--gold)}
+.legend{position:absolute;bottom:12px;left:12px;display:flex;gap:12px;flex-wrap:wrap;
+  background:rgba(20,26,37,.85);border:1px solid var(--line);border-radius:10px;
+  padding:8px 12px;font-size:11.5px;color:var(--muted);backdrop-filter:blur(6px)}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.legend i{width:9px;height:9px;border-radius:50%}
+.inspector{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+  padding:18px;min-height:200px}
+.inspector h4{margin:0 0 4px;font-size:15px}
+.inspector .ph{color:var(--dim);font-size:13px}
+.inspector .row{display:flex;justify-content:space-between;gap:10px;font-size:12.5px;
+  padding:7px 0;border-bottom:1px solid var(--line)}
+.inspector .row .k{color:var(--muted)} .inspector .row .v{text-align:right;word-break:break-word}
+
+/* ---------- Cards ---------- */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius-sm);
+  padding:15px 16px;transition:.15s}
+.card:hover{border-color:var(--line2);transform:translateY(-1px)}
+.card.possible{border-style:dashed;border-color:#4a4226;background:
+  linear-gradient(0deg,rgba(242,181,68,.04),transparent)}
+.card .ct{display:flex;align-items:center;gap:8px;font-weight:600;font-size:14.5px}
+.card .ct .em{font-size:16px}
+.card .cu{font-family:var(--mono);font-size:12px;color:var(--muted);margin:6px 0 0;word-break:break-all}
+.card .rows{margin-top:10px;font-size:12.5px}
+.card .rows div{display:flex;justify-content:space-between;gap:10px;padding:3px 0}
+.card .rows .k{color:var(--dim)} .card .rows .v{text-align:right;color:var(--ink);word-break:break-word}
+.badge{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;
+  padding:2px 8px;border-radius:999px;margin-left:auto}
+.badge.ok{background:rgba(100,201,138,.14);color:var(--green)}
+.badge.maybe{background:rgba(242,181,68,.14);color:var(--amber)}
+.badge.breach{background:rgba(229,83,75,.16);color:var(--red)}
+.group-h{display:flex;align-items:center;gap:10px;margin:22px 0 12px;font-size:13px;
+  text-transform:uppercase;letter-spacing:.6px;color:var(--dim);font-weight:700}
+.group-h::after{content:"";flex:1;height:1px;background:var(--line)}
+.empty{color:var(--dim);font-size:13.5px;padding:30px;text-align:center;
+  border:1px dashed var(--line);border-radius:var(--radius-sm)}
+
+/* ---------- Limitations ---------- */
+.note{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--amber);
+  border-radius:var(--radius-sm);padding:16px 18px;margin:0 0 14px}
+.note h4{margin:0 0 8px;font-size:14.5px;color:var(--ink)}
+.note ul{margin:0;padding-left:20px;color:var(--muted);font-size:13.5px}
+.note li{margin:5px 0}
+.foot{margin-top:40px;padding-top:20px;border-top:1px solid var(--line);
+  color:var(--dim);font-size:12px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.k-link{font-family:var(--mono);font-size:12px}
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="hero-inner">
+    <div class="brand"><span class="dot">🐺</span> OSINT Hound · Informe de recoleccion</div>
+    <div class="expo high">
+      <div class="lab">Exposicion</div>
+      <div class="val">Alta</div>
+      <div class="meter"><i style="width:100%"></i></div>
+    </div>
+    <h1 class="h-title">Ada Lovelace King</h1>
+    <div class="h-sub">Ada Lovelace King · @adaloveking, @lovelace_a · ada.king@proton.me, a.king@novatech.io · +442079460958 · novatech.io</div>
+    <div class="h-meta"><span class="chip">🌍 Pais: <b>Reino Unido</b></span><span class="chip">📍 Ubicacion: <b>Londres</b></span><span class="chip">🧩 Modulos: <b>9</b></span><span class="chip">🔎 Consultas: <b>71</b></span><span class="chip">⏱ Duracion: <b>24.7s</b></span><span class="chip">🛠 Externas: <b>instaladas: sherlock, holehe</b></span></div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="tiles"><div class="tile" style="--accent:var(--teal)"><div class="ic">🕸️</div><div class="n">27</div><div class="l">Nodos en el grafo</div></div><div class="tile" style="--accent:var(--teal)"><div class="ic">🔗</div><div class="n">12</div><div class="l">Perfiles / alias</div></div><div class="tile" style="--accent:var(--blue)"><div class="ic">✉️</div><div class="n">3</div><div class="l">Correos</div></div><div class="tile" style="--accent:var(--violet)"><div class="ic">📞</div><div class="n">1</div><div class="l">Telefonos</div></div><div class="tile" style="--accent:var(--blue)"><div class="ic">🌐</div><div class="n">1</div><div class="l">Dominios</div></div><div class="tile" style="--accent:var(--red)"><div class="ic">🔥</div><div class="n">3</div><div class="l">Brechas</div></div><div class="tile" style="--accent:var(--muted)"><div class="ic">📄</div><div class="n">3</div><div class="l">Registros publicos</div></div></section>
+
+  <nav class="tabs"><button class="tab active" data-tab="grafo">Grafo</button><button class="tab" data-tab="perfiles">Perfiles<span class="c">7</span></button><button class="tab" data-tab="correos">Correos y brechas<span class="c">5</span></button><button class="tab" data-tab="telefono">Telefono<span class="c">1</span></button><button class="tab" data-tab="dominio">Dominio<span class="c">3</span></button><button class="tab" data-tab="registros">Registros publicos<span class="c">4</span></button><button class="tab" data-tab="huella">Huella publica<span class="c">3</span></button><button class="tab" data-tab="imagen">Imagen<span class="c">2</span></button><button class="tab" data-tab="dorks">Dorks y pivotes<span class="c">4</span></button><button class="tab" data-tab="candidatos">Candidatos<span class="c">2</span></button><button class="tab" data-tab="limitaciones">Limitaciones</button></nav>
+  <section id="panel-grafo" class="panel active">
+        <div class="graph-wrap">
+          <div id="graph">
+            <div class="toolbar">
+              <button class="tbtn" id="b-tree" onclick="toggleTree()">🌳 Arbol</button>
+              <button class="tbtn on" id="b-phys" onclick="togglePhysics()">✦ Fisica</button>
+              <button class="tbtn" onclick="fitGraph()">⤢ Centrar</button>
+              <button class="tbtn" onclick="exportPNG()">⇩ PNG</button>
+              <button class="tbtn" onclick="exportJSON()">⇩ JSON</button>
+            </div>
+            <div class="legend"><span><i style="background:#f2b544"></i>Objetivo</span><span><i style="background:#56c5b5"></i>Alias</span><span><i style="background:#56c5b5"></i>Perfil</span><span><i style="background:#6ea8fe"></i>Correo</span><span><i style="background:#b98cf0"></i>Telefono</span><span><i style="background:#6ea8fe"></i>Dominio</span><span><i style="background:#e5534b"></i>Brecha</span><span><i style="background:#9db1c7"></i>Registro publico</span><span><i style="background:#d98c5f"></i>Imagen</span><span><i style="background:#8fd08c"></i>Ubicacion</span><span><i style="background:#7a869a"></i>Pivote</span></div>
+          </div>
+          <aside class="inspector" id="insp"></aside>
+        </div></section><section id="panel-perfiles" class="panel"><div class="grid"><div class="card"><div class="ct"><span class="em">🔗</span><span>GitHub (@adaloveking)</span><span class="badge ok">confirmado</span></div><div class="cu"><a href="https://github.com/adaloveking" target="_blank" rel="noopener">https://github.com/adaloveking</a></div><div class="rows"><div><span class="k">site</span><span class="v">GitHub</span></div><div><span class="k">grupo</span><span class="v">Desarrollo</span></div></div></div><div class="card"><div class="ct"><span class="em">🔗</span><span>GitLab (@adaloveking)</span><span class="badge ok">confirmado</span></div><div class="cu"><a href="https://gitlab.com/adaloveking" target="_blank" rel="noopener">https://gitlab.com/adaloveking</a></div><div class="rows"><div><span class="k">site</span><span class="v">GitLab</span></div><div><span class="k">grupo</span><span class="v">Desarrollo</span></div></div></div><div class="card"><div class="ct"><span class="em">🔗</span><span>Keybase (@adaloveking)</span><span class="badge ok">confirmado</span></div><div class="cu"><a href="https://keybase.io/adaloveking" target="_blank" rel="noopener">https://keybase.io/adaloveking</a></div><div class="rows"><div><span class="k">site</span><span class="v">Keybase</span></div><div><span class="k">grupo</span><span class="v">Seguridad</span></div></div></div><div class="card"><div class="ct"><span class="em">🔗</span><span>Reddit (@adaloveking)</span><span class="badge ok">confirmado</span></div><div class="cu"><a href="https://www.reddit.com/user/adaloveking" target="_blank" rel="noopener">https://www.reddit.com/user/adaloveking</a></div><div class="rows"><div><span class="k">site</span><span class="v">Reddit</span></div><div><span class="k">grupo</span><span class="v">Social</span></div></div></div><div class="card"><div class="ct"><span class="em">🔗</span><span>Twitch (@lovelace_a)</span><span class="badge ok">confirmado</span></div><div class="cu"><a href="https://www.twitch.tv/lovelace_a" target="_blank" rel="noopener">https://www.twitch.tv/lovelace_a</a></div><div class="rows"><div><span class="k">site</span><span class="v">Twitch</span></div><div><span class="k">grupo</span><span class="v">Gaming</span></div></div></div><div class="card possible"><div class="ct"><span class="em">🔗</span><span>Mastodon (Gravatar)</span><span class="badge maybe">posible</span></div><div class="cu"><a href="https://mastodon.social/@adaking" target="_blank" rel="noopener">https://mastodon.social/@adaking</a></div><div class="rows"><div><span class="k">via</span><span class="v">Gravatar</span></div><div><span class="k">nota</span><span class="v">cuenta vinculada en el perfil de Gravatar</span></div></div></div><div class="card possible"><div class="ct"><span class="em">🔗</span><span>Spotify (@adaloveking)</span><span class="badge maybe">posible</span></div><div class="cu"><a href="https://open.spotify.com/user/adaloveking" target="_blank" rel="noopener">https://open.spotify.com/user/adaloveking</a></div><div class="rows"><div><span class="k">site</span><span class="v">Spotify</span></div></div></div></div></section><section id="panel-correos" class="panel"><div class="grid"><div class="card"><div class="ct"><span class="em">✉️</span><span>a.king@novatech.io</span><span class="badge ok">confirmado</span></div><div class="cu">a.king@novatech.io</div><div class="rows"><div><span class="k">proveedor</span><span class="v">corporativo/propio</span></div><div><span class="k">acepta correo</span><span class="v">True</span></div><div><span class="k">mx</span><span class="v">mail.novatech.io</span></div></div></div><div class="card"><div class="ct"><span class="em">✉️</span><span>ada.king@proton.me</span><span class="badge ok">confirmado</span></div><div class="cu">ada.king@proton.me</div><div class="rows"><div><span class="k">Foto Gravatar</span><span class="v"><img src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=identicon&amp;s=80" width="40" height="40" style="border-radius:8px;vertical-align:middle"></span></div><div><span class="k">nombre gravatar</span><span class="v">Ada K.</span></div><div><span class="k">proveedor</span><span class="v">gratuito</span></div><div><span class="k">acepta correo</span><span class="v">True</span></div><div><span class="k">perfil gravatar</span><span class="v">https://gravatar.com/adaloveking</span></div></div></div><div class="card"><div class="ct"><span class="em">🔥</span><span>Brecha: Collection #1</span><span class="badge breach">brecha</span></div><div class="cu">ada.king@proton.me</div><div class="rows"><div><span class="k">fecha</span><span class="v">2019-01</span></div><div><span class="k">datos filtrados</span><span class="v">Correos, contrasenas (hash)</span></div><div><span class="k">fuente</span><span class="v">HIBP</span></div></div></div><div class="card"><div class="ct"><span class="em">🔥</span><span>Brecha: Dropbox</span><span class="badge breach">brecha</span></div><div class="cu">a.king@novatech.io</div><div class="rows"><div><span class="k">fecha</span><span class="v">2012-07</span></div><div><span class="k">datos filtrados</span><span class="v">Correos, contrasenas</span></div><div><span class="k">fuente</span><span class="v">XposedOrNot</span></div></div></div><div class="card"><div class="ct"><span class="em">🔥</span><span>Brecha: LinkedIn (2021)</span><span class="badge breach">brecha</span></div><div class="cu">ada.king@proton.me</div><div class="rows"><div><span class="k">fecha</span><span class="v">2021-06</span></div><div><span class="k">datos filtrados</span><span class="v">Correos, nombres, cargos</span></div><div><span class="k">cuentas afectadas</span><span class="v">700000000</span></div><div><span class="k">fuente</span><span class="v">HIBP</span></div></div></div></div></section><section id="panel-telefono" class="panel"><div class="grid"><div class="card"><div class="ct"><span class="em">📞</span><span>+44 20 7946 0958</span><span class="badge ok">confirmado</span></div><div class="cu">+442079460958</div><div class="rows"><div><span class="k">pais</span><span class="v">Londres, Reino Unido</span></div><div><span class="k">prefijo pais</span><span class="v">+44</span></div><div><span class="k">operador</span><span class="v">BT</span></div><div><span class="k">tipo linea</span><span class="v">Fijo</span></div><div><span class="k">internacional</span><span class="v">+44 20 7946 0958</span></div><div><span class="k">zonas horarias</span><span class="v">Europe/London</span></div><div><span class="k">pivotes</span><span class="v"><a href="https://wa.me/442079460958" target="_blank" rel="noopener">WhatsApp</a> · <a href="https://www.google.com/search?q=%22+442079460958%22" target="_blank" rel="noopener">Buscar en Google</a></span></div></div></div></div></section><section id="panel-dominio" class="panel"><div class="grid"><div class="card"><div class="ct"><span class="em">🌐</span><span>novatech.io</span><span class="badge ok">confirmado</span></div><div class="cu"><a href="https://novatech.io" target="_blank" rel="noopener">https://novatech.io</a></div><div class="rows"><div><span class="k">a</span><span class="v">185.199.108.153</span></div><div><span class="k">mx</span><span class="v">mail.novatech.io</span></div><div><span class="k">ns</span><span class="v">ns1.cloudns.net, ns2.cloudns.net</span></div><div><span class="k">spf</span><span class="v">v=spf1 include:_spf.google.com ~all</span></div><div><span class="k">dmarc</span><span class="v">—</span></div><div><span class="k">riesgo spoofing</span><span class="v">sin DMARC</span></div><div><span class="k">registrador</span><span class="v">Namecheap, Inc.</span></div><div><span class="k">creado</span><span class="v">2019-03-12</span></div><div><span class="k">caduca</span><span class="v">2027-03-12</span></div><div><span class="k">servidores nombres</span><span class="v">ns1.cloudns.net, ns2.cloudns.net</span></div><div><span class="k">contacto whois</span><span class="v">redacted for privacy</span></div><div><span class="k">subdominios (6)</span><span class="v">www.novatech.io, mail.novatech.io, vpn.novatech.io, dev.novatech.io, staging.novatech.io, git.novatech.io</span></div></div></div><div class="card possible"><div class="ct"><span class="em">🧭</span><span>Subdominio: staging.novatech.io</span><span class="badge maybe">posible</span></div><div class="cu"><a href="https://staging.novatech.io" target="_blank" rel="noopener">https://staging.novatech.io</a></div><div class="rows"><div><span class="k">dominio padre</span><span class="v">novatech.io</span></div></div></div><div class="card possible"><div class="ct"><span class="em">🧭</span><span>Subdominio: vpn.novatech.io</span><span class="badge maybe">posible</span></div><div class="cu"><a href="https://vpn.novatech.io" target="_blank" rel="noopener">https://vpn.novatech.io</a></div><div class="rows"><div><span class="k">dominio padre</span><span class="v">novatech.io</span></div></div></div></div></section><section id="panel-registros" class="panel"><div class="group-h">Global</div><div class="grid"><div class="card possible"><div class="ct"><span class="em">🧭</span><span>EUR-Lex (DO de la UE)</span><span class="badge maybe">posible</span></div><div class="cu"><a href="https://eur-lex.europa.eu/search.html?type=quick&amp;text=%22Ada%20Lovelace%20King%22" target="_blank" rel="noopener">https://eur-lex.europa.eu/search.html?type=quick&amp;text=%22Ada%20Lovelace%20King%22</a></div><div class="rows"><div><span class="k">grupo</span><span class="v">Global</span></div></div></div><div class="card possible"><div class="ct"><span class="em">📄</span><span>OpenCorporates (cargos)</span><span class="badge maybe">posible</span></div><div class="cu"><a href="https://opencorporates.com/officers?q=Ada%20Lovelace%20King" target="_blank" rel="noopener">https://opencorporates.com/officers?q=Ada%20Lovelace%20King</a></div><div class="rows"><div><span class="k">grupo</span><span class="v">Global</span></div></div></div></div><div class="group-h">Reino Unido</div><div class="grid"><div class="card possible"><div class="ct"><span class="em">📄</span><span>Companies House</span><span class="badge maybe">posible</span></div><div class="cu"><a href="https://find-and-update.company-information.service.gov.uk/search?q=Ada%20Lovelace%20King" target="_blank" rel="noopener">https://find-and-update.company-information.service.gov.uk/search?q=Ada%20Lovelace%20King</a></div><div class="rows"><div><span class="k">grupo</span><span class="v">Reino Unido</span></div><div><span class="k">instruccion</span><span class="v">Abrir y confirmar coincidencias reales</span></div></div></div><div class="card possible"><div class="ct"><span class="em">📄</span><span>The Gazette (UK)</span><span class="badge maybe">posible</span></div><div class="cu"><a href="https://www.thegazette.co.uk/all-notices/notice?text=%22Ada%20Lovelace%20King%22" target="_blank" rel="noopener">https://www.thegazette.co.uk/all-notices/notice?text=%22Ada%20Lovelace%20King%22</a></div><div class="rows"><div><span class="k">grupo</span><span class="v">Reino Unido</span></div></div></div></div></section><section id="panel-huella" class="panel"><div class="group-h">Academico</div><div class="grid"><div class="card possible"><div class="ct"><span class="em">🧭</span><span>Paper: grafos de correlacion (ORCID)</span><span class="badge maybe">posible</span></div><div class="cu"><a href="https://orcid.org/0000-0002-ada-king" target="_blank" rel="noopener">https://orcid.org/0000-0002-ada-king</a></div><div class="rows"><div><span class="k">tipo</span><span class="v">Academico</span></div><div><span class="k">fuente</span><span class="v">orcid.org</span></div></div></div></div><div class="group-h">Medios</div><div class="grid"><div class="card possible"><div class="ct"><span class="em">🧭</span><span>Charla en DEF CON - OSINT moderno</span><span class="badge maybe">posible</span></div><div class="cu"><a href="https://media.defcon.org/talk-ada-king" target="_blank" rel="noopener">https://media.defcon.org/talk-ada-king</a></div><div class="rows"><div><span class="k">tipo</span><span class="v">Medios</span></div><div><span class="k">fuente</span><span class="v">media.defcon.org</span></div></div></div></div><div class="group-h">Profesional</div><div class="grid"><div class="card possible"><div class="ct"><span class="em">🧭</span><span>Ada Lovelace King - NovaTech (CTO)</span><span class="badge maybe">posible</span></div><div class="cu"><a href="https://www.linkedin.com/in/adaloveking" target="_blank" rel="noopener">https://www.linkedin.com/in/adaloveking</a></div><div class="rows"><div><span class="k">tipo</span><span class="v">Profesional</span></div><div><span class="k">fuente</span><span class="v">linkedin.com</span></div></div></div></div></section><section id="panel-imagen" class="panel"><div class="grid"><div class="card"><div class="ct"><span class="em">🖼️</span><span>Imagen: perfil.jpg</span><span class="badge ok">confirmado</span></div><div class="cu">perfil.jpg</div></div><div class="card possible"><div class="ct"><span class="em">🧭</span><span>Busqueda inversa: Yandex</span><span class="badge maybe">posible</span></div><div class="cu"><a href="https://yandex.com/images/" target="_blank" rel="noopener">https://yandex.com/images/</a></div><div class="rows"><div><span class="k">instruccion</span><span class="v">Subir la foto manualmente</span></div></div></div></div></section><section id="panel-dorks" class="panel"><div class="group-h">Correo ada.king@proton.me</div><div class="grid"><div class="card possible"><div class="ct"><span class="em">🧭</span><span>Correo en pastes</span><span class="badge maybe">posible</span></div><div class="cu"><a href="https://www.google.com/search?q=%22ada.king@proton.me%22%20site:pastebin.com" target="_blank" rel="noopener">https://www.google.com/search?q=%22ada.king@proton.me%22%20site:pastebin.com</a></div><div class="rows"><div><span class="k">grupo</span><span class="v">Correo ada.king@proton.me</span></div></div></div><div class="card possible"><div class="ct"><span class="em">🧭</span><span>Tecnica IntelX -&gt; Yandex</span><span class="badge maybe">posible</span></div><div class="cu"><a href="https://intelx.io/" target="_blank" rel="noopener">https://intelx.io/</a></div><div class="rows"><div><span class="k">grupo</span><span class="v">Correo ada.king@proton.me</span></div></div></div></div><div class="group-h">Nombre</div><div class="grid"><div class="card possible"><div class="ct"><span class="em">🧭</span><span>Documentos con el nombre</span><span class="badge maybe">posible</span></div><div class="cu"><a href="https://www.google.com/search?q=%22Ada%20Lovelace%20King%22%20filetype:pdf" target="_blank" rel="noopener">https://www.google.com/search?q=%22Ada%20Lovelace%20King%22%20filetype:pdf</a></div><div class="rows"><div><span class="k">grupo</span><span class="v">Nombre</span></div></div></div><div class="card possible"><div class="ct"><span class="em">🧭</span><span>Nombre exacto</span><span class="badge maybe">posible</span></div><div class="cu"><a href="https://www.google.com/search?q=%22Ada%20Lovelace%20King%22" target="_blank" rel="noopener">https://www.google.com/search?q=%22Ada%20Lovelace%20King%22</a></div><div class="rows"><div><span class="k">grupo</span><span class="v">Nombre</span></div></div></div></div></section><section id="panel-candidatos" class="panel"><div class="grid"><div class="card possible"><div class="ct"><span class="em">🧑</span><span>Alias candidato: adalovelaceking</span><span class="badge maybe">posible</span></div><div class="cu">adalovelaceking</div></div><div class="card possible"><div class="ct"><span class="em">✉️</span><span>Correo candidato: adaloveking@gmail.com</span><span class="badge maybe">posible</span></div><div class="cu">adaloveking@gmail.com</div></div></div></section><section id="panel-limitaciones" class="panel">
+        
+        <div class="note">
+          <h4>Alcance y limitaciones de este informe</h4>
+          <ul>
+            <li><b>Solo fuentes abiertas (OSINT).</b> No se accede a sistemas privados,
+                ni se vulnera ninguna cuenta. La informacion ya era publicamente accesible.</li>
+            <li><b>Deteccion heuristica.</b> La existencia de un perfil por codigo de estado
+                puede dar <i>falsos positivos</i>; por eso hay una fase de revision humana.</li>
+            <li><b>Homonimos.</b> Un nombre puede corresponder a varias personas. Los hallazgos
+                marcados <b>POSIBLE</b> no estan confirmados como del objetivo.</li>
+            <li><b>Brechas de datos.</b> Indican que un correo aparecio en una filtracion
+                conocida; no se muestran ni se recuperan contrasenas.</li>
+            <li><b>Datos derivados.</b> Los alias/correos "candidatos" son inferencias para
+                pivotar, no hechos verificados.</li>
+            <li><b>Temporalidad.</b> La informacion refleja el momento de la consulta y puede
+                quedar obsoleta.</li>
+            <li><b>Dependencias externas.</b> Algunos modulos requieren claves de API o
+                herramientas instaladas; si faltan, esa fuente no aporta datos.</li>
+          </ul>
+        </div>
+        <div class="note" style="border-left-color:var(--teal)">
+          <h4>Trazabilidad</h4>
+          <ul>
+            <li>Modulos ejecutados: Huella publica, Enumeracion de usuarios, Analisis de correo, Brechas de datos, Analisis telefonico, Auditoria de dominio, Registros y boletines oficiales, Metadatos de imagen, Google Dorks y pivotes</li>
+            <li>Consultas de red realizadas: 71</li>
+            <li>Total de hallazgos recogidos: 31</li>
+          </ul>
+        </div></section>
+
+  <div class="foot">
+    <span>Generado por <b>OSINT Hound v3.0.0</b> · 2026-10-28 17:05:00</span>
+    <span class="k-link">Solo fuentes abiertas · uso etico y legal</span>
+  </div>
+</main>
+
+<script>
+const GRAPH = {"root": "person:ada-lovelace-king", "nodes": [{"id": "person:ada-lovelace-king", "label": "🎯 Ada Lovelace King", "group": "person", "type": "person", "confidence": "confirmed", "title": "Objetivo · Confirmado\nAda Lovelace King", "color": {"background": "#f2b544", "border": "#f2b544"}, "shape": "box", "borderWidth": 3, "shapeProperties": {"borderDashes": false}, "value": 30, "meta": {"resumen": "Ada Lovelace King · @adaloveking, @lovelace_a · ada.king@proton.me, a.king@novatech.io · +442079460958 · novatech.io", "pais": "Reino Unido", "ubicacion": "Londres"}}, {"id": "username:adaloveking", "label": "🧑 @adaloveking", "group": "username", "type": "username", "confidence": "confirmed", "title": "Alias · Confirmado\n@adaloveking", "color": {"background": "#56c5b5", "border": "#56c5b5"}, "shape": "dot", "borderWidth": 1, "shapeProperties": {"borderDashes": false}, "value": 12, "meta": {}}, {"id": "username:lovelace-a", "label": "🧑 @lovelace_a", "group": "username", "type": "username", "confidence": "confirmed", "title": "Alias · Confirmado\n@lovelace_a", "color": {"background": "#56c5b5", "border": "#56c5b5"}, "shape": "dot", "borderWidth": 1, "shapeProperties": {"borderDashes": false}, "value": 12, "meta": {}}, {"id": "email:ada-king-proton-me", "label": "✉️ ada.king@proton.me", "group": "email", "type": "email", "confidence": "confirmed", "title": "Correo · Confirmado\nada.king@proton.me", "color": {"background": "#6ea8fe", "border": "#6ea8fe"}, "shape": "dot", "borderWidth": 1, "shapeProperties": {"borderDashes": false}, "value": 12, "meta": {"gravatar": true, "nombre_gravatar": "Ada K.", "proveedor": "gratuito", "acepta_correo": true, "foto": "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=identicon&s=80", "perfil_gravatar": "https://gravatar.com/adaloveking"}}, {"id": "email:a-king-novatech-io", "label": "✉️ a.king@novatech.io", "group": "email", "type": "email", "confidence": "confirmed", "title": "Correo · Confirmado\na.king@novatech.io", "color": {"background": "#6ea8fe", "border": "#6ea8fe"}, "shape": "dot", "borderWidth": 1, "shapeProperties": {"borderDashes": false}, "value": 12, "meta": {"proveedor": "corporativo/propio", "acepta_correo": true, "mx": ["mail.novatech.io"], "dominio": "novatech.io"}}, {"id": "domain:novatech-io", "label": "🌐 novatech.io", "group": "domain", "type": "domain", "confidence": "confirmed", "title": "Dominio · Confirmado\nnovatech.io", "color": {"background": "#6ea8fe", "border": "#6ea8fe"}, "shape": "dot", "borderWidth": 1, "shapeProperties": {"borderDashes": false}, "value": 12, "meta": {"a": ["185.199.108.153"], "mx": ["mail.novatech.io"], "ns": ["ns1.cloudns.net", "ns2.cloudns.net"], "spf": "v=spf1 include:_spf.google.com ~all", "dmarc": "—", "riesgo_spoofing": "sin DMARC", "registrador": "Namecheap, Inc.", "creado": "2019-03-12", "caduca": "2027-03-12", "servidores_nombres": ["ns1.cloudns.net", "ns2.cloudns.net"], "contacto_whois": "redacted for privacy", "subdominios": ["www.novatech.io", "mail.novatech.io", "vpn.novatech.io", "dev.novatech.io", "staging.novatech.io", "git.novatech.io"]}}, {"id": "phone:442079460958", "label": "📞 +442079460958", "group": "phone", "type": "phone", "confidence": "confirmed", "title": "Telefono · Confirmado\n+442079460958", "color": {"background": "#b98cf0", "border": "#b98cf0"}, "shape": "dot", "borderWidth": 1, "shapeProperties": {"borderDashes": false}, "value": 12, "meta": {"pais": "Londres, Reino Unido", "prefijo_pais": "+44", "operador": "BT", "tipo_linea": "Fijo", "internacional": "+44 20 7946 0958", "zonas_horarias": ["Europe/London"], "pivotes": {"WhatsApp": "https://wa.me/442079460958", "Buscar en Google": "https://www.google.com/search?q=%22+442079460958%22"}}}, {"id": "location:londres", "label": "📍 Londres", "group": "location", "type": "location", "confidence": "confirmed", "title": "Ubicacion · Confirmado\nLondres", "color": {"background": "#8fd08c", "border": "#8fd08c"}, "shape": "dot", "borderWidth": 1, "shapeProperties": {"borderDashes": false}, "value": 12, "meta": {}}, {"id": "profile:https-github-com-adaloveking", "label": "🔗 GitHub (@adaloveking)", "group": "profile", "type": "profile", "confidence": "confirmed", "title": "Perfil · Confirmado\nGitHub (@adaloveking)", "color": {"background": "#56c5b5", "border": "#56c5b5"}, "shape": "dot", "borderWidth": 1, "shapeProperties": {"borderDashes": false}, "value": 12, "meta": {"url": "https://github.com/adaloveking", "username": "adaloveking", "site": "GitHub", "grupo": "Desarrollo"}}, {"id": "profile:https-gitlab-com-adaloveking", "label": "🔗 GitLab (@adaloveking)", "group": "profile", "type": "profile", "confidence": "confirmed", "title": "Perfil · Confirmado\nGitLab (@adaloveking)", "color": {"background": "#56c5b5", "border": "#56c5b5"}, "shape": "dot", "borderWidth": 1, "shapeProperties": {"borderDashes": false}, "value": 12, "meta": {"url": "https://gitlab.com/adaloveking", "username": "adaloveking", "site": "GitLab", "grupo": "Desarrollo"}}, {"id": "profile:https-www-reddit-com-user-adaloveking", "label": "🔗 Reddit (@adaloveking)", "group": "profile", "type": "profile", "confidence": "confirmed", "title": "Perfil · Confirmado\nReddit (@adaloveking)", "color": {"background": "#56c5b5", "border": "#56c5b5"}, "shape": "dot", "borderWidth": 1, "shapeProperties": {"borderDashes": false}, "value": 12, "meta": {"url": "https://www.reddit.com/user/adaloveking", "username": "adaloveking", "site": "Reddit", "grupo": "Social"}}, {"id": "profile:https-keybase-io-adaloveking", "label": "🔗 Keybase (@adaloveking)", "group": "profile", "type": "profile", "confidence": "confirmed", "title": "Perfil · Confirmado\nKeybase (@adaloveking)", "color": {"background": "#56c5b5", "border": "#56c5b5"}, "shape": "dot", "borderWidth": 1, "shapeProperties": {"borderDashes": false}, "value": 12, "meta": {"url": "https://keybase.io/adaloveking", "username": "adaloveking", "site": "Keybase", "grupo": "Seguridad"}}, {"id": "profile:https-www-twitch-tv-lovelace-a", "label": "🔗 Twitch (@lovelace_a)", "group": "profile", "type": "profile", "confidence": "confirmed", "title": "Perfil · Confirmado\nTwitch (@lovelace_a)", "color": {"background": "#56c5b5", "border": "#56c5b5"}, "shape": "dot", "borderWidth": 1, "shapeProperties": {"borderDashes": false}, "value": 12, "meta": {"url": "https://www.twitch.tv/lovelace_a", "username": "lovelace_a", "site": "Twitch", "grupo": "Gaming"}}, {"id": "username:adaking", "label": "🧑 @adaking", "group": "username", "type": "username", "confidence": "possible", "title": "Alias · POSIBLE (revisar)\n@adaking", "color": {"background": "#2a2f3a", "border": "#56c5b5"}, "shape": "dot", "borderWidth": 1, "shapeProperties": {"borderDashes": [6, 4]}, "value": 12, "meta": {}}, {"id": "profile:https-mastodon-social-adaking", "label": "🔗 Mastodon (Gravatar)", "group": "profile", "type": "profile", "confidence": "possible", "title": "Perfil · POSIBLE (revisar)\nMastodon (Gravatar)", "color": {"background": "#2a2f3a", "border": "#56c5b5"}, "shape": "dot", "borderWidth": 1, "shapeProperties": {"borderDashes": [6, 4]}, "value": 12, "meta": {"url": "https://mastodon.social/@adaking", "via": "Gravatar", "username": "adaking", "nota": "cuenta vinculada en el perfil de Gravatar"}}, {"id": "profile:https-open-spotify-com-user-adaloveking", "label": "🔗 Spotify (@adaloveking)", "group": "profile", "type": "profile", "confidence": "possible", "title": "Perfil · POSIBLE (revisar)\nSpotify (@adaloveking)", "color": {"background": "#2a2f3a", "border": "#56c5b5"}, "shape": "dot", "borderWidth": 1, "shapeProperties": {"borderDashes": [6, 4]}, "value": 12, "meta": {"url": "https://open.spotify.com/user/adaloveking", "username": "adaloveking", "site": "Spotify"}}, {"id": "breach:brecha-linkedin-2021-ada-king-proton-me", "label": "🔥 Brecha: LinkedIn (2021)", "group": "breach", "type": "breach", "confidence": "confirmed", "title": "Brecha · Confirmado\nBrecha: LinkedIn (2021)", "color": {"background": "#e5534b", "border": "#e5534b"}, "shape": "dot", "borderWidth": 1, "shapeProperties": {"borderDashes": false}, "value": 12, "meta": {"email": "ada.king@proton.me", "fecha": "2021-06", "datos_filtrados": "Correos, nombres, cargos", "cuentas_afectadas": 700000000, "fuente": "HIBP"}}, {"id": "breach:brecha-collection-1-ada-king-proton-me", "label": "🔥 Brecha: Collection #1", "group": "breach", "type": "breach", "confidence": "confirmed", "title": "Brecha · Confirmado\nBrecha: Collection #1", "color": {"background": "#e5534b", "border": "#e5534b"}, "shape": "dot", "borderWidth": 1, "shapeProperties": {"borderDashes": false}, "value": 12, "meta": {"email": "ada.king@proton.me", "fecha": "2019-01", "datos_filtrados": "Correos, contrasenas (hash)", "fuente": "HIBP"}}, {"id": "breach:brecha-dropbox-a-king-novatech-io", "label": "🔥 Brecha: Dropbox", "group": "breach", "type": "breach", "confidence": "confirmed", "title": "Brecha · Confirmado\nBrecha: Dropbox", "color": {"background": "#e5534b", "border": "#e5534b"}, "shape": "dot", "borderWidth": 1, "shapeProperties": {"borderDashes": false}, "value": 12, "meta": {"email": "a.king@novatech.io", "fecha": "2012-07", "datos_filtrados": "Correos, contrasenas", "fuente": "XposedOrNot"}}, {"id": "record:https-find-and-update-company-information-service-gov-uk-search-q-ada-20lovelace", "label": "📄 Companies House", "group": "record", "type": "record", "confidence": "possible", "title": "Registro publico · POSIBLE (revisar)\nCompanies House", "color": {"background": "#2a2f3a", "border": "#9db1c7"}, "shape": "dot", "borderWidth": 1, "shapeProperties": {"borderDashes": [6, 4]}, "value": 12, "meta": {"url": "https://find-and-update.company-information.service.gov.uk/search?q=Ada%20Lovelace%20King", "grupo": "Reino Unido", "instruccion": "Abrir y confirmar coincidencias reales"}}, {"id": "record:https-www-thegazette-co-uk-all-notices-notice-text-22ada-20lovelace-20king-22", "label": "📄 The Gazette (UK)", "group": "record", "type": "record", "confidence": "possible", "title": "Registro publico · POSIBLE (revisar)\nThe Gazette (UK)", "color": {"background": "#2a2f3a", "border": "#9db1c7"}, "shape": "dot", "borderWidth": 1, "shapeProperties": {"borderDashes": [6, 4]}, "value": 12, "meta": {"url": "https://www.thegazette.co.uk/all-notices/notice?text=%22Ada%20Lovelace%20King%22", "grupo": "Reino Unido"}}, {"id": "record:https-opencorporates-com-officers-q-ada-20lovelace-20king", "label": "📄 OpenCorporates (cargos)", "group": "record", "type": "record", "confidence": "possible", "title": "Registro publico · POSIBLE (revisar)\nOpenCorporates (cargos)", "color": {"background": "#2a2f3a", "border": "#9db1c7"}, "shape": "dot", "borderWidth": 1, "shapeProperties": {"borderDashes": [6, 4]}, "value": 12, "meta": {"url": "https://opencorporates.com/officers?q=Ada%20Lovelace%20King", "grupo": "Global"}}, {"id": "image:perfil-jpg", "label": "🖼️ Imagen: perfil.jpg", "group": "image", "type": "image", "confidence": "confirmed", "title": "Imagen · Confirmado\nImagen: perfil.jpg", "color": {"background": "#d98c5f", "border": "#d98c5f"}, "shape": "dot", "borderWidth": 1, "shapeProperties": {"borderDashes": false}, "value": 12, "meta": {"fichero": "perfil.jpg", "camara": "Apple iPhone 14 Pro", "fecha_captura": "2024:05:18 14:32:07", "software": "iOS 17.4", "gps": [51.5079, -0.0877], "mapa": "https://www.google.com/maps?q=51.5079,-0.0877"}}, {"id": "location:51-5079-0-0877", "label": "📍 GPS [51.5079, -0.0877]", "group": "location", "type": "location", "confidence": "confirmed", "title": "Ubicacion · Confirmado\nGPS [51.5079, -0.0877]", "color": {"background": "#8fd08c", "border": "#8fd08c"}, "shape": "dot", "borderWidth": 1, "shapeProperties": {"borderDashes": false}, "value": 12, "meta": {}}, {"id": "username:adalovelaceking", "label": "🧑 @adalovelaceking", "group": "username", "type": "username", "confidence": "possible", "title": "Alias · POSIBLE (revisar)\n@adalovelaceking", "color": {"background": "#2a2f3a", "border": "#56c5b5"}, "shape": "dot", "borderWidth": 1, "shapeProperties": {"borderDashes": [6, 4]}, "value": 12, "meta": {}}, {"id": "profile:adalovelaceking", "label": "🔗 Alias candidato: adalovelaceking", "group": "profile", "type": "profile", "confidence": "possible", "title": "Perfil · POSIBLE (revisar)\nAlias candidato: adalovelaceking", "color": {"background": "#2a2f3a", "border": "#56c5b5"}, "shape": "dot", "borderWidth": 1, "shapeProperties": {"borderDashes": [6, 4]}, "value": 12, "meta": {"url": "", "derived_from": "nombre", "username": "adalovelaceking"}}, {"id": "email:adaloveking-gmail-com", "label": "✉️ adaloveking@gmail.com", "group": "email", "type": "email", "confidence": "possible", "title": "Correo · POSIBLE (revisar)\nadaloveking@gmail.com", "color": {"background": "#2a2f3a", "border": "#6ea8fe"}, "shape": "dot", "borderWidth": 1, "shapeProperties": {"borderDashes": [6, 4]}, "value": 12, "meta": {"derived_from": "alias:adaloveking"}}], "edges": [{"from": "person:ada-lovelace-king", "to": "username:adaloveking", "label": "alias", "dashes": false, "color": {"color": "#56c5b5", "opacity": 0.55}}, {"from": "person:ada-lovelace-king", "to": "username:lovelace-a", "label": "alias", "dashes": false, "color": {"color": "#56c5b5", "opacity": 0.55}}, {"from": "person:ada-lovelace-king", "to": "email:ada-king-proton-me", "label": "correo", "dashes": false, "color": {"color": "#56c5b5", "opacity": 0.55}}, {"from": "person:ada-lovelace-king", "to": "email:a-king-novatech-io", "label": "correo", "dashes": false, "color": {"color": "#56c5b5", "opacity": 0.55}}, {"from": "person:ada-lovelace-king", "to": "domain:novatech-io", "label": "dominio", "dashes": false, "color": {"color": "#56c5b5", "opacity": 0.55}}, {"from": "person:ada-lovelace-king", "to": "phone:442079460958", "label": "telefono", "dashes": false, "color": {"color": "#56c5b5", "opacity": 0.55}}, {"from": "person:ada-lovelace-king", "to": "location:londres", "label": "ubicacion", "dashes": false, "color": {"color": "#56c5b5", "opacity": 0.55}}, {"from": "username:adaloveking", "to": "profile:https-github-com-adaloveking", "label": "perfil", "dashes": false, "color": {"color": "#56c5b5", "opacity": 0.55}}, {"from": "username:adaloveking", "to": "profile:https-gitlab-com-adaloveking", "label": "perfil", "dashes": false, "color": {"color": "#56c5b5", "opacity": 0.55}}, {"from": "username:adaloveking", "to": "profile:https-www-reddit-com-user-adaloveking", "label": "perfil", "dashes": false, "color": {"color": "#56c5b5", "opacity": 0.55}}, {"from": "username:adaloveking", "to": "profile:https-keybase-io-adaloveking", "label": "perfil", "dashes": false, "color": {"color": "#56c5b5", "opacity": 0.55}}, {"from": "username:lovelace-a", "to": "profile:https-www-twitch-tv-lovelace-a", "label": "perfil", "dashes": false, "color": {"color": "#56c5b5", "opacity": 0.55}}, {"from": "person:ada-lovelace-king", "to": "username:adaking", "label": "alias", "dashes": [6, 4], "color": {"color": "#f2b544", "opacity": 0.55}}, {"from": "username:adaking", "to": "profile:https-mastodon-social-adaking", "label": "perfil", "dashes": [6, 4], "color": {"color": "#f2b544", "opacity": 0.55}}, {"from": "username:adaloveking", "to": "profile:https-open-spotify-com-user-adaloveking", "label": "perfil", "dashes": [6, 4], "color": {"color": "#f2b544", "opacity": 0.55}}, {"from": "email:ada-king-proton-me", "to": "breach:brecha-linkedin-2021-ada-king-proton-me", "label": "expuesto en", "dashes": false, "color": {"color": "#56c5b5", "opacity": 0.55}}, {"from": "email:ada-king-proton-me", "to": "breach:brecha-collection-1-ada-king-proton-me", "label": "expuesto en", "dashes": false, "color": {"color": "#56c5b5", "opacity": 0.55}}, {"from": "email:a-king-novatech-io", "to": "breach:brecha-dropbox-a-king-novatech-io", "label": "expuesto en", "dashes": false, "color": {"color": "#56c5b5", "opacity": 0.55}}, {"from": "person:ada-lovelace-king", "to": "record:https-find-and-update-company-information-service-gov-uk-search-q-ada-20lovelace", "label": "registro", "dashes": [6, 4], "color": {"color": "#f2b544", "opacity": 0.55}}, {"from": "person:ada-lovelace-king", "to": "record:https-www-thegazette-co-uk-all-notices-notice-text-22ada-20lovelace-20king-22", "label": "registro", "dashes": [6, 4], "color": {"color": "#f2b544", "opacity": 0.55}}, {"from": "person:ada-lovelace-king", "to": "record:https-opencorporates-com-officers-q-ada-20lovelace-20king", "label": "registro", "dashes": [6, 4], "color": {"color": "#f2b544", "opacity": 0.55}}, {"from": "person:ada-lovelace-king", "to": "image:perfil-jpg", "label": "imagen", "dashes": false, "color": {"color": "#56c5b5", "opacity": 0.55}}, {"from": "image:perfil-jpg", "to": "location:51-5079-0-0877", "label": "capturada en", "dashes": false, "color": {"color": "#56c5b5", "opacity": 0.55}}, {"from": "person:ada-lovelace-king", "to": "username:adalovelaceking", "label": "alias", "dashes": [6, 4], "color": {"color": "#f2b544", "opacity": 0.55}}, {"from": "username:adalovelaceking", "to": "profile:adalovelaceking", "label": "perfil", "dashes": [6, 4], "color": {"color": "#f2b544", "opacity": 0.55}}, {"from": "person:ada-lovelace-king", "to": "email:adaloveking-gmail-com", "label": "correo", "dashes": [6, 4], "color": {"color": "#f2b544", "opacity": 0.55}}, {"from": "email:a-king-novatech-io", "to": "domain:novatech-io", "label": "mismo dominio", "dashes": [6, 4], "color": {"color": "#f2b544", "opacity": 0.55}}], "stats": {"nodes": 27, "edges": 27, "profiles": 12, "emails": 3, "phones": 1, "domains": 1, "breaches": 3, "records": 3}};
+const META  = {"objetivo": "Ada Lovelace King · @adaloveking, @lovelace_a · ada.king@proton.me, a.king@novatech.io · +442079460958 · novatech.io", "pais": "Reino Unido", "fecha": "2026-10-28 17:05:00", "modulos": ["Huella publica", "Enumeracion de usuarios", "Analisis de correo", "Brechas de datos", "Analisis telefonico", "Auditoria de dominio", "Registros y boletines oficiales", "Metadatos de imagen", "Google Dorks y pivotes"], "herramientas_externas": "instaladas: sherlock, holehe", "advertencias": [], "duracion_s": 24.7, "consultas_realizadas": 71, "total_hallazgos": 31, "confirmados": 13};
+
+/* ---- Tabs ---- */
+document.querySelectorAll('.tab').forEach(t=>{
+  t.addEventListener('click',()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById('panel-'+t.dataset.tab).classList.add('active');
+    if(t.dataset.tab==='grafo' && network) setTimeout(()=>network.fit(),50);
+  });
+});
+
+/* ---- Graph (vis-network) ---- */
+let network=null, physicsOn=true, treeMode=false;
+function nodeTitle(n){
+  let m=n.meta||{}; let s=n.label.replace(/^[^ ]+ /,'');
+  return s;
+}
+function buildGraph(){
+  if(typeof vis==='undefined'){ document.getElementById('graph').innerHTML=
+    '<div class="empty" style="margin:40px">No se pudo cargar vis-network (sin conexion). '+
+    'Los datos del grafo estan igualmente en el JSON exportado.</div>'; return; }
+  const nodes=new vis.DataSet(GRAPH.nodes);
+  const edges=new vis.DataSet(GRAPH.edges);
+  const opts={
+    nodes:{font:{color:'#e8edf5',size:13,face:'Inter'},borderWidth:1,
+      scaling:{min:8,max:34}},
+    edges:{font:{color:'#9db1c7',size:10,strokeWidth:0,face:'Inter'},
+      smooth:{type:'continuous'},arrows:{to:{enabled:false}},width:1.2},
+    physics:{enabled:true,barnesHut:{gravitationalConstant:-9000,springLength:140,
+      springConstant:.04,damping:.5},stabilization:{iterations:180}},
+    interaction:{hover:true,tooltipDelay:120,navigationButtons:false},
+    layout:{improvedLayout:true}
+  };
+  network=new vis.Network(document.getElementById('graph'),{nodes,edges},opts);
+  network.on('selectNode',p=>showNode(nodes.get(p.nodes[0])));
+  network.on('deselectNode',clearNode);
+}
+function showNode(n){
+  const box=document.getElementById('insp');
+  let rows='';
+  const m=n.meta||{};
+  for(const k in m){
+    let v=m[k]; if(v===null||v==='')continue;
+    if(typeof v==='object') v=JSON.stringify(v);
+    rows+=`<div class="row"><span class="k">${k}</span><span class="v">${v}</span></div>`;
+  }
+  const url=(m.url||'');
+  box.innerHTML=`<h4>${n.label}</h4>`+
+    `<div class="ph">${n.confidence==='possible'?'⚠ POSIBLE · pendiente de revision':'● Confirmado'} · ${n.type}</div>`+
+    (url?`<div style="margin:8px 0"><a href="${url}" target="_blank" rel="noopener">${url}</a></div>`:'')+
+    (rows||'<div class="ph" style="margin-top:10px">Sin metadatos adicionales.</div>');
+}
+function clearNode(){document.getElementById('insp').innerHTML=
+  '<h4>Inspector</h4><div class="ph">Pulsa un nodo del grafo para ver sus metadatos, evidencias y el enlace a la fuente.</div>';}
+
+function toggleTree(){
+  treeMode=!treeMode;
+  document.getElementById('b-tree').classList.toggle('on',treeMode);
+  network.setOptions(treeMode?
+    {layout:{hierarchical:{enabled:true,direction:'UD',sortMethod:'directed',
+      levelSeparation:120,nodeSpacing:140}},physics:false}:
+    {layout:{hierarchical:{enabled:false}},physics:{enabled:physicsOn}});
+  setTimeout(()=>network.fit(),60);
+}
+function togglePhysics(){physicsOn=!physicsOn;
+  document.getElementById('b-phys').classList.toggle('on',physicsOn);
+  if(!treeMode)network.setOptions({physics:{enabled:physicsOn}});}
+function fitGraph(){network.fit({animation:true});}
+function exportPNG(){
+  const c=document.querySelector('#graph canvas'); if(!c)return;
+  const a=document.createElement('a'); a.download='osint_hound_grafo.png';
+  a.href=c.toDataURL('image/png'); a.click();
+}
+function exportJSON(){
+  const blob=new Blob([JSON.stringify({meta:META,graph:GRAPH},null,2)],
+    {type:'application/json'});
+  const a=document.createElement('a'); a.download='osint_hound_grafo.json';
+  a.href=URL.createObjectURL(blob); a.click();
+}
+window.addEventListener('load',()=>{buildGraph();clearNode();});
+</script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}OSINT Hound · Informe{% endblock %}
+{% block s3 %}on{% endblock %}
+{% block content %}
+<div class="ok-banner">✅ Informe generado para <b style="margin-left:4px">{{ target.summary() }}</b></div>
+
+<div class="minitiles">
+  <div class="mt"><div class="n">{{ stats.nodes }}</div><div class="l">Nodos</div></div>
+  <div class="mt"><div class="n">{{ stats.profiles }}</div><div class="l">Perfiles</div></div>
+  <div class="mt"><div class="n">{{ stats.emails }}</div><div class="l">Correos</div></div>
+  <div class="mt"><div class="n">{{ stats.breaches }}</div><div class="l">Brechas</div></div>
+  <div class="mt"><div class="n">{{ stats.domains }}</div><div class="l">Dominios</div></div>
+  <div class="mt"><div class="n">{{ stats.records }}</div><div class="l">Registros</div></div>
+</div>
+
+<div class="row-btns" style="margin-bottom:16px">
+  <a class="btn" href="/r/{{ slug }}.html" target="_blank">⇱ Abrir informe completo</a>
+  <a class="btn sec" href="/r/{{ slug }}.json">⇩ Descargar JSON</a>
+  <a class="btn sec" href="/">← Nueva busqueda</a>
+</div>
+
+<iframe class="report" src="/r/{{ slug }}.html" title="Informe OSINT Hound"></iframe>
+{% endblock %}

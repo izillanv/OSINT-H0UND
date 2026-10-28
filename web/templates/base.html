@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="es" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}OSINT Hound{% endblock %}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header class="hero">
+  <div class="hero-in">
+    <div class="brand">
+      <span class="dot">🐺</span>
+      <div><div class="t">OSINT Hound</div>
+        <div class="s">Recoleccion OSINT de personas · human-in-the-loop</div></div>
+    </div>
+    <div class="steps">
+      <span class="step {% block s1 %}{% endblock %}">1 · Identificadores</span>
+      <span class="step {% block s2 %}{% endblock %}">2 · Revision</span>
+      <span class="step {% block s3 %}{% endblock %}">3 · Informe</span>
+    </div>
+  </div>
+</header>
+<main class="wrap">
+  {% block content %}{% endblock %}
+</main>
+</body>
+</html>

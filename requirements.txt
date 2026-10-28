@@ -1,0 +1,17 @@
+# ===========================================================================
+# OSINT Hound - dependencias
+# ---------------------------------------------------------------------------
+# Todo el framework funciona con estas librerias. Ninguna clave de API es
+# obligatoria; los modulos que la necesitan simplemente se saltan si falta.
+# ===========================================================================
+
+requests>=2.31.0        # peticiones HTTP a las fuentes OSINT
+phonenumbers>=8.13.0    # validacion/enriquecimiento telefonico mundial
+dnspython>=2.4.0        # resolucion DNS (A/MX/NS/TXT) para dominios
+python-whois>=0.9.0     # consultas WHOIS de dominios
+Pillow>=10.0.0          # lectura de metadatos EXIF/GPS de imagenes
+Flask>=3.0.0            # interfaz web (opcional, pero incluida)
+
+# --- Opcionales (el codigo los detecta y usa si estan, si no los ignora) ---
+beautifulsoup4>=4.12.0  # parseo HTML mas robusto en algunos modulos
+colorama>=0.4.6         # colores ANSI en Windows (PowerShell/CMD)

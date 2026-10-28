@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}OSINT Hound · Nueva busqueda{% endblock %}
+{% block s1 %}on{% endblock %}
+{% block content %}
+<h1>Nueva investigacion</h1>
+<p class="lead">Introduce los identificadores que tengas del objetivo. Solo se usan
+fuentes abiertas. Despues confirmaras que resultados son reales.</p>
+
+{% if error %}<div class="error">{{ error }}</div>{% endif %}
+{% if warnings %}<div class="warnbox"><b>Entradas descartadas:</b><ul>
+{% for w in warnings %}<li>{{ w }}</li>{% endfor %}</ul></div>{% endif %}
+
+<form method="post" action="/discover">
+  <div class="card">
+    <div class="grid2">
+      <div><label>Nombre completo</label>
+        <input type="text" name="name" placeholder="Ada Lovelace King"></div>
+      <div><label>Alias / username</label>
+        <input type="text" name="username" placeholder="adaloveking, lovelace_a">
+        <div class="hint">Varios separados por comas</div></div>
+      <div><label>Correo(s)</label>
+        <input type="text" name="email" placeholder="ada@proton.me, a.king@acme.io"></div>
+      <div><label>Telefono(s)</label>
+        <input type="text" name="phone" placeholder="+44 20 7946 0958"></div>
+      <div><label>Dominio asociado</label>
+        <input type="text" name="domain" placeholder="acme.io"></div>
+      <div><label>Ubicacion (contexto)</label>
+        <input type="text" name="location" placeholder="Londres"></div>
+      <div><label>Pais</label>
+        <select name="country">
+          {% for code, nombre in countries %}
+          <option value="{{ code }}" {% if code==default %}selected{% endif %}>{{ nombre }} ({{ code }})</option>
+          {% endfor %}
+        </select></div>
+      <div><label>Ruta a imagen local (EXIF/GPS)</label>
+        <input type="text" name="image" placeholder="/ruta/foto.jpg"></div>
+    </div>
+
+    <div class="opt">
+      <input type="checkbox" name="wmn" id="wmn">
+      <label for="wmn" style="margin:0">Usar dataset WhatsMyName (cientos de sitios, mas lento)</label>
+    </div>
+
+    <div class="consent">
+      <input type="checkbox" name="consent" id="consent" required>
+      <label for="consent" style="margin:0">
+        Confirmo que tengo una <b>base legitima</b> para esta busqueda (mi propia huella,
+        auditoria autorizada o red team con alcance acordado) y que respetare el RGPD/LOPDGDD.
+        No la usare para acosar ni perfilar sin consentimiento.
+      </label>
+    </div>
+
+    <div class="row-btns">
+      <button class="btn" type="submit">🔎 Descubrir candidatos</button>
+      <span class="hint">Se ejecutaran los modulos aplicables a lo que introduzcas.</span>
+    </div>
+  </div>
+</form>
+{% endblock %}

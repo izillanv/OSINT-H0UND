@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}OSINT Hound · Revision{% endblock %}
+{% block s2 %}on{% endblock %}
+{% block content %}
+<h1>Revision de candidatos</h1>
+<p class="lead">Marca los hallazgos que <b>sI corresponden al objetivo</b> y desmarca
+homonimos o falsos positivos. Lo que confirmes entrara al grafo y al informe.</p>
+
+<div class="summary">
+  <span class="chip">🎯 <b>{{ target.summary() }}</b></span>
+  <span class="chip">🌍 {{ meta.pais }}</span>
+  <span class="chip">🧩 {{ meta.modulos|length }} modulos</span>
+  <span class="chip">🔎 {{ meta.consultas_realizadas }} consultas</span>
+  <span class="chip">⏱ {{ meta.duracion_s }}s</span>
+</div>
+
+{% if warnings %}<div class="warnbox"><b>Entradas descartadas:</b>
+{% for w in warnings %}<div>· {{ w }}</div>{% endfor %}</div>{% endif %}
+
+<form method="post" action="/report/{{ token }}">
+  {% if confirmables %}
+    <div class="row-btns" style="margin-bottom:10px">
+      <button class="btn sec" type="button" onclick="setAll(true)">Marcar todo</button>
+      <button class="btn sec" type="button" onclick="setAll(false)">Desmarcar todo</button>
+    </div>
+    {% set ns = namespace(cat='') %}
+    {% for i, f in confirmables %}
+      {% if f.category != ns.cat %}
+        {% set ns.cat = f.category %}
+        <div class="group">{{ f.category }}</div>
+      {% endif %}
+      <label class="finding {{ 'maybe' if f.is_possible else '' }}">
+        <input type="checkbox" name="keep" value="{{ i }}" {{ '' if f.is_possible else 'checked' }}>
+        <span class="body">
+          <span class="ttl">{{ f.label }}
+            {% if f.kind=='breach' %}<span class="tag breach">brecha</span>
+            {% elif f.is_possible %}<span class="tag maybe">posible</span>
+            {% else %}<span class="tag ok">confirmado</span>{% endif %}
+          </span>
+          {% if f.url or f.value %}<span class="u">{{ f.url or f.value }}</span>{% endif %}
+        </span>
+      </label>
+    {% endfor %}
+  {% else %}
+    <div class="pivnote">No hay hallazgos que requieran confirmacion individual.</div>
+  {% endif %}
+
+  {% if n_pivots %}
+  <div class="pivnote">➕ Se incluiran ademas <b>{{ n_pivots }}</b> pivotes y enlaces de
+    revision manual (dorks, registros oficiales, busqueda inversa…) en las pestañas del informe.</div>
+  {% endif %}
+
+  <div class="bar">
+    <button class="btn" type="submit">🧩 Generar informe</button>
+    <a class="btn sec" href="/">← Nueva busqueda</a>
+  </div>
+</form>
+
+<script>
+function setAll(v){document.querySelectorAll('input[name=keep]').forEach(c=>c.checked=v);}
+</script>
+{% endblock %}
