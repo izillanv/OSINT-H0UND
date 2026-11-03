@@ -1,4 +1,4 @@
-- CONSOLA
-![[Pasted image 20261103220619.png]]
-- GRAFO E INTERFAZ WEB![[Pasted image 20261103220706.png]]
-- INTERFAZ WEB![[Pasted image 20261103220819.png]]
+- CONSOLA![[consola.png]]
+
+- GRAFO E INTERFAZ WEB![[grafo.png]]
+- INTERFAZ WEB![[web.png]]
