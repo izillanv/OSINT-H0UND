@@ -229,3 +229,10 @@ credenciales) y por qué.
 
 ## 📜 Licencia
 MIT — ver [`LICENSE`](LICENSE). Incluye el aviso de uso ético y legal.
+
+## Capturas de ejemplo
+
+![Captura 1](docs/captura1.png)
+![Captura 2](docs/captura2.png)
+![Captura 3](docs/captura3.png)
+![Captura 4](docs/captura4.png)
